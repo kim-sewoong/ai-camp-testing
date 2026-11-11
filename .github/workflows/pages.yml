@@ -1,0 +1,49 @@
+name: 점심 데이터 갱신 & 배포
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # 평일 KST 10:30, 11:30, 12:30 (UTC 01:30, 02:30, 03:30)
+    - cron: "30 1,2,3 * * 1-5"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 카카오맵 실시간 조회 → data.json
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          python3 server.py --out _site/data.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

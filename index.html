@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘 점심 리서치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#fff; --ink:#1d1c1a; --muted:#6f6b63; --line:#e6e2d9;
+  --accent:#e0562b; --accent-soft:#fdeee8; --kakao:#fee500; --kakao-ink:#191600; --naver:#03c75a;
+  --chip:#efece5; --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141413; --surface:#1e1d1b; --ink:#f1efe9; --muted:#a29d93; --line:#2f2d2a;
+  --accent:#ff7a4d; --accent-soft:#3a2219; --chip:#2a2926; --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413; --surface:#1e1d1b; --ink:#f1efe9; --muted:#a29d93; --line:#2f2d2a;
+  --accent:#ff7a4d; --accent-soft:#3a2219; --chip:#2a2926; --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 16px 64px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:28px;font-weight:800;margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.status{font-size:13px;color:var(--muted);text-align:right}
+.status b{color:var(--ink)}
+button,select,input{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:500}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:hover{filter:brightness(.97)}
+
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.pick{background:var(--surface);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:2px solid var(--accent);position:relative}
+.pick .rank{position:absolute;top:-12px;left:18px;background:var(--accent);color:#fff;font-weight:800;font-size:13px;padding:3px 12px;border-radius:999px}
+.pick h2{margin:6px 0 2px;font-size:24px;letter-spacing:-.02em}
+.pick .why{margin:12px 0 16px;font-size:14px;background:var(--accent-soft);padding:10px 12px;border-radius:10px}
+.meta{color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.lk{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;font-weight:700;padding:7px 11px;border-radius:9px}
+.lk.kakao{background:var(--kakao);color:var(--kakao-ink)}
+.lk.naver{background:var(--naver);color:#fff}
+.lk.blog{background:var(--chip);color:var(--ink)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.toolbar input{flex:1 1 200px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px}
+.toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chip{border:none;background:var(--chip);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg)}
+.chip small{opacity:.6;margin-left:3px}
+
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card h3{margin:0;font-size:17px}
+.tag{display:inline-block;font-size:12px;background:var(--chip);border-radius:6px;padding:1px 7px;margin-right:4px}
+.bar{height:4px;border-radius:4px;background:var(--chip);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.notice{font-size:13px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;margin-bottom:20px}
+.notice code{background:var(--chip);padding:1px 5px;border-radius:4px}
+.empty{color:var(--muted);padding:40px;text-align:center}
+.skeleton{height:180px;border-radius:18px;background:linear-gradient(90deg,var(--chip),var(--surface),var(--chip));background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🍱 오늘 점심 뭐 먹지?</h1>
+      <div class="sub">서울 중구 퇴계로 24 SK남산빌딩 기준 · 카카오맵 실시간 조회 + 네이버 리뷰</div>
+    </div>
+    <div class="status" id="status">불러오는 중…</div>
+  </header>
+
+  <section class="picks" id="picks">
+    <div class="skeleton"></div><div class="skeleton"></div>
+  </section>
+
+  <div id="notice"></div>
+
+  <div class="toolbar">
+    <input id="q" placeholder="가게 이름·메뉴 검색 (예: 냉면, 돈까스)">
+    <select id="radius">
+      <option value="300">반경 300m (도보 ~5분)</option>
+      <option value="500" selected>반경 500m (도보 ~8분)</option>
+      <option value="800">반경 800m (도보 ~12분)</option>
+      <option value="1000">반경 1km (도보 ~15분)</option>
+    </select>
+    <select id="sort">
+      <option value="score">추천순</option>
+      <option value="distance">가까운순</option>
+      <option value="review">리뷰 많은순</option>
+    </select>
+    <button class="btn" id="reroll">🎲 추천 다시 뽑기</button>
+    <button class="btn primary" id="refresh">↻ 새로고침</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <section class="list" id="list"></section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const state = { data:null, cat:"전체", seed: todaySeed(), excluded: new Set() };
+
+function todaySeed(){ const d=new Date(); return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(); }
+function rand(seed, str){ // 결정적 의사난수 (날짜+가게)
+  let h = seed ^ 2166136261;
+  for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return ((h>>>0) % 10000) / 10000;
+}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const walk = m => Math.max(1, Math.round(m / 67)); // 약 4km/h
+
+function score(items, radius){
+  const maxBlog = Math.max(0, ...items.map(i => i.blogCount || 0));
+  for (const i of items){
+    const dist = 1 - Math.min(i.distance, radius) / radius;
+    const rev = maxBlog ? Math.log10((i.blogCount||0)+1) / Math.log10(maxBlog+1) : null;
+    const luck = rand(state.seed, i.id);
+    i.review = rev;
+    i.score = rev === null ? 0.4*dist + 0.6*luck : 0.55*rev + 0.30*dist + 0.15*luck;
+  }
+}
+
+function pickTwo(items){
+  const pool = items.filter(i => !/술집|호프|요리주점|이자카야|간식|제과|베이커리|아이스크림/.test(i.category + i.detail));
+  const sorted = [...pool].sort((a,b)=>b.score-a.score);
+  const first = sorted[0];
+  const second = sorted.find(i => i !== first && i.category !== first?.category) || sorted[1];
+  return [first, second].filter(Boolean);
+}
+
+function linksHTML(i){
+  return `<div class="links">
+    <a class="lk kakao" href="${i.links.kakaoReview}" target="_blank" rel="noopener">카카오맵 리뷰</a>
+    <a class="lk naver" href="${i.links.naverMap}" target="_blank" rel="noopener">네이버지도 리뷰</a>
+    <a class="lk blog" href="${i.links.naverBlog}" target="_blank" rel="noopener">블로그 후기</a>
+  </div>`;
+}
+
+function whyText(i, items){
+  const parts = [];
+  if (i.review !== null && i.blogCount){
+    const rank = [...items].sort((a,b)=>(b.blogCount||0)-(a.blogCount||0)).indexOf(i)+1;
+    parts.push(`네이버 블로그 후기 <b>${i.blogCount.toLocaleString()}건</b> (주변 ${items.length}곳 중 ${rank}위)`);
+  }
+  parts.push(`걸어서 약 <b>${walk(i.distance)}분</b> (${i.distance}m)`);
+  parts.push(`${esc(i.detail)} 메뉴`);
+  return parts.join(" · ");
+}
+
+function render(){
+  const d = state.data; if (!d) return;
+  const radius = +$("#radius").value;
+  const items = d.items.filter(i => i.distance <= radius);
+  score(items, radius);
+
+  // 추천 2곳
+  const picks = pickTwo(items);
+  $("#picks").innerHTML = picks.length ? picks.map((i,n)=>`
+    <article class="pick">
+      <span class="rank">오늘의 추천 ${n+1}</span>
+      <h2>${esc(i.name)}</h2>
+      <div class="meta"><span>${esc(i.category)} · ${esc(i.detail)}</span><span>📍 ${i.distance}m · 도보 ${walk(i.distance)}분</span>${i.phone?`<span>☎ ${esc(i.phone)}</span>`:""}</div>
+      <div class="why">💡 ${whyText(i, items)}</div>
+      ${linksHTML(i)}
+    </article>`).join("") : `<div class="empty">추천할 곳이 없어요</div>`;
+
+  // 안내
+  $("#notice").innerHTML = d.naverEnabled ? "" : `<div class="notice">
+    ℹ️ 지금은 <b>거리 + 오늘의 랜덤</b>으로 추천 중입니다. 네이버 검색 API 키(<code>NAVER_CLIENT_ID</code>, <code>NAVER_CLIENT_SECRET</code>)를 설정하면 <b>네이버 블로그 리뷰 수</b>를 반영해 추천합니다.
+    (카카오·네이버 별점은 공식 API로 제공되지 않아, 각 카드의 리뷰 링크에서 확인하세요.)</div>`;
+
+  // 카테고리 칩
+  const counts = {};
+  items.forEach(i => counts[i.category] = (counts[i.category]||0)+1);
+  const cats = ["전체", ...Object.keys(counts).sort((a,b)=>counts[b]-counts[a])];
+  $("#chips").innerHTML = cats.map(c=>`<button class="chip ${c===state.cat?"on":""}" data-cat="${esc(c)}">${esc(c)}<small>${c==="전체"?items.length:counts[c]}</small></button>`).join("");
+
+  // 목록
+  const q = $("#q").value.trim();
+  const sort = $("#sort").value;
+  let list = items.filter(i => (state.cat==="전체"||i.category===state.cat) && (!q || (i.name+i.detail+i.category).includes(q)));
+  list.sort(sort==="distance" ? (a,b)=>a.distance-b.distance : sort==="review" ? (a,b)=>(b.blogCount||0)-(a.blogCount||0) : (a,b)=>b.score-a.score);
+  $("#list").innerHTML = list.length ? list.map(i=>`
+    <div class="card">
+      <div><h3>${esc(i.name)}</h3>
+        <div class="meta"><span><span class="tag">${esc(i.category)}</span>${esc(i.detail)}</span><span>${i.distance}m · 도보 ${walk(i.distance)}분</span></div>
+      </div>
+      ${i.blogCount!=null?`<div class="meta">네이버 블로그 후기 ${i.blogCount.toLocaleString()}건</div>`:""}
+      <div class="bar" title="추천 점수"><i style="width:${Math.round(i.score*100)}%"></i></div>
+      ${linksHTML(i)}
+    </div>`).join("") : `<div class="empty">조건에 맞는 식당이 없어요</div>`;
+}
+
+async function load(){
+  $("#status").textContent = "카카오맵 데이터 불러오는 중…";
+  try{
+    const r = await fetch(`data.json?t=${Date.now()}`, {cache:"no-store"});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.status);
+    state.data = d;
+    const t = new Date(d.generatedAt || Date.now()).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    $("#status").innerHTML = `카카오맵 <b>${d.items.length}곳</b> · ${t} 조회<br>네이버 리뷰 신호 ${d.naverEnabled?"ON":"OFF"}`;
+    render();
+  }catch(e){
+    $("#status").textContent = "조회 실패";
+    $("#picks").innerHTML = `<div class="empty">데이터를 불러오지 못했어요: ${esc(e.message)}</div>`;
+  }
+}
+
+$("#chips").addEventListener("click", e => { const b=e.target.closest(".chip"); if(!b) return; state.cat=b.dataset.cat; render(); });
+$("#q").addEventListener("input", render);
+$("#sort").addEventListener("change", render);
+$("#radius").addEventListener("change", render);
+$("#refresh").addEventListener("click", load);
+$("#reroll").addEventListener("click", () => { state.seed = Math.floor(Math.random()*1e9); render(); });
+load();
+</script>
+</body>
+</html>
