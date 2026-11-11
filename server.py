@@ -142,7 +142,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
         if u.path in ("/", ""):
-            self.path = "/index.html"
+            self.path = "/lunch.html"
         return super().do_GET()
 
 

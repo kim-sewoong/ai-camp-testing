@@ -31,7 +31,7 @@ jobs:
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
         run: |
           mkdir -p _site
-          cp index.html _site/
+          cp lunch.html _site/index.html
           python3 server.py --out _site/data.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
